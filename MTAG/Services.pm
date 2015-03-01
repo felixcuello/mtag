@@ -9,9 +9,7 @@ package MTAG::Services { # Base class for all services
 
   # Tries to tag a directory given a pattern
   sub try {
-    my $directory = shift;
-    my $pattern   = shift;
-    return 0;
+    ...; # Have to be redefined in sub-classes
   }
 
   # Returns true if two string matches
@@ -23,6 +21,34 @@ package MTAG::Services { # Base class for all services
     return 2 if $self->_fuzzy_match_strings($a,$b);
     return 0; # Damn!
   }
+
+  # Returns a hash with matching positions in arrays
+  sub match_arrays {
+    my $self  = shift;
+    my $left  = shift || [];
+    my $right = shift || [];
+
+    my $matches_found = 0;
+    my $mapping       = {};
+    for( my $l=0; $l<=$#{$left}; ++$l ) {
+      for( my $r=0; $r<=$#{$left}; ++$r ) {
+        if( $self->match_strings($left[$l], $right[$r]) ) {
+          if( exists $mapping->{$l} ) {
+            warn("*Premature End*, since $left[$l] points to $right[$r] and $right[$mapping->{$l}]\n");
+            return 0;
+          }
+          $mapping->{$l} = $r;
+          $matches_found = 1;
+        }
+      }
+      return 0 unless $matches_found;
+    }
+    return $mapping;
+  }
+
+
+# Helper Methods
+#------------------------------------------------------------------
 
   sub _perfect_match_strings {
     my $self = shift;

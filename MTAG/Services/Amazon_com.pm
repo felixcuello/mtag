@@ -7,7 +7,6 @@ package MTAG::Services::Amazon_com {
 
   sub try {
     my $self = shift;
-    say "***************************** amazon.com *****************************";
     return 0;
   }
   1;
