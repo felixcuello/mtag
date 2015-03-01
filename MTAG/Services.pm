@@ -5,11 +5,22 @@ package MTAG::Services { # Base class for all services
   use common::sense;
   use constant SUBSTRING_MATCH_LENGTH => 7;
 
-  has '_lwp' => ( is => 'ro', isa => 'LWP::UserAgent', default => sub { LWP::UserAgent->new(); } );
+  has '_lwp'     => ( is => 'ro', isa => 'LWP::UserAgent', default => sub { shift->_prepare_LWP() },, );
+  has '_dir'     => ( is => 'ro', isa => 'ArrayRef',       default => sub { []; }, );
+  has '_pattern' => ( is => 'ro', isa => 'Str',            default => '', );
 
-  # Tries to tag a directory given a pattern
+  # try
+  # In the base class prepares _dir and _pattern for derived classes
   sub try {
-    ...; # Have to be redefined in sub-classes
+    my $self    = shift;
+    my $dir     = shift || die("DIR is mandatory!\n");
+    my $pattern = shift || die("PATTERN is mandatory!\n");
+    opendir( DH, $dir ) || die("Can't access $dir\n");
+    while( my $file = readdir(DH) ) {
+      push(@{$self->{_dir}}, $file) if $file =~ /mp3\s*$/;
+    }
+    close( DH );
+    $self->{_pattern} = $pattern;
   }
 
   # Returns true if two string matches
@@ -32,9 +43,9 @@ package MTAG::Services { # Base class for all services
     my $mapping       = {};
     for( my $l=0; $l<=$#{$left}; ++$l ) {
       for( my $r=0; $r<=$#{$left}; ++$r ) {
-        if( $self->match_strings($left[$l], $right[$r]) ) {
+        if( $self->match_strings($left->[$l], $right->[$r]) ) {
           if( exists $mapping->{$l} ) {
-            warn("*Premature End*, since $left[$l] points to $right[$r] and $right[$mapping->{$l}]\n");
+            warn("*Premature End*, since $left->[$l] points to $right->[$r] and $right->[$mapping->{$l}]\n");
             return 0;
           }
           $mapping->{$l} = $r;
@@ -49,6 +60,13 @@ package MTAG::Services { # Base class for all services
 
 # Helper Methods
 #------------------------------------------------------------------
+
+  sub _prepare_LWP {
+    my $self = shift;
+    my $ua   = LWP::UserAgent->new();
+    $ua->agent( 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.111 Safari/537.36' );
+    return $ua;
+  }
 
   sub _perfect_match_strings {
     my $self = shift;

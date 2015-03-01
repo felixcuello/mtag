@@ -1,10 +1,11 @@
 #!/usr/bin/perl
 
+use Cwd;
 use common::sense;
 use MTAG;
 
 my $search_pattern = shift; usage() if $search_pattern =~ /(-h|--help)/i;
-my $directory      = shift // '.';
+my $directory      = shift // getcwd();
 my $mtag           = MTAG->new();
 $mtag->do_your_magic( $directory, $search_pattern );
 

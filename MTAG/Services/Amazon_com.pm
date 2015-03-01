@@ -1,14 +1,17 @@
 package MTAG::Services::Amazon_com {
 
   use Moose;
-  use common::sense;
 
   extends 'MTAG::Services';
 
-  sub try {
+  around 'try' => sub {
+    my $orig = shift;
     my $self = shift;
+
+    $self->$orig(@_);
     return 0;
-  }
+  };
+
   1;
 };
 
